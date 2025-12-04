@@ -36,7 +36,6 @@
 			member_email=#{memberEmail},
 			member_birth=#{memberBirth},
 			member_contact=#{memberContact},
-			member_level=#{memberBirth},
 			member_post=#{memberPost},
 			member_address1=#{memberAddress1},
 			member_address1=#{memberAddress2}
