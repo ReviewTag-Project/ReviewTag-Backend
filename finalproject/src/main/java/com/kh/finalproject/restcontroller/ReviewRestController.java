@@ -26,7 +26,7 @@ public class ReviewRestController {
 	private ReviewDao reviewDao;
 	
 	//등록
-	@PostMapping("/insert")
+	@PostMapping("/")
 	public void insert(@RequestBody ReviewDto reviewDto) {
 		reviewDao.insert(reviewDto);
 	}
@@ -63,6 +63,8 @@ public class ReviewRestController {
 	//삭제
 	@DeleteMapping("/{reviewNo}")
 	public void delete(@PathVariable Long reviewNo) {
+		ReviewDto originDto = reviewDao.selectOne(reviewNo);
+		if(originDto == null)throw new TargetNotfoundException();
 		
 		boolean success = reviewDao.delete(reviewNo);
 		if(!success) {
