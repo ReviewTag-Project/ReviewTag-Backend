@@ -1,5 +1,8 @@
 package com.kh.finalproject.dao.contents;
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -21,4 +24,8 @@ public class ContentsDao {
     public ContentsDetailDto selectContentDetailWithGenres(Long contentsId) {
     	return sqlSession.selectOne("contents.selectContentDetailWithGenres", contentsId);
     }
-}
+    //장르별 컨텐츠 목록 조회
+    public List<ContentsDetailDto> selectListByGenre(Map<String, Object> genre) {
+    	return sqlSession.selectList("contents.selectContentsByGenre", genre);
+    }
+ }

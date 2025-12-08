@@ -1,10 +1,13 @@
 package com.kh.finalproject.dao.contents;
 
+import java.util.List;
+
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.kh.finalproject.dto.contents.ContentsGenreDto;
+import com.kh.finalproject.dto.contents.GenreDto;
 import com.kh.finalproject.vo.contents.ContentsGenreMapVO;
 
 @Repository
@@ -28,4 +31,14 @@ public class GenreDao {
     public void upsertGenre(ContentsGenreDto dto) {
     	sqlSession.insert("contents.upsertGenre", dto);
     }
+    
+    //장르 목록 조회
+    public List<GenreDto> selectGenre() {
+    	return sqlSession.selectList("contents.selectGenreList");
+    }
+    
+    //장르 상세 조회
+    public GenreDto selectGenreDetail(Integer genreId) {
+    	return sqlSession.selectOne("contents.detailGenre", genreId);
+    } 
 }

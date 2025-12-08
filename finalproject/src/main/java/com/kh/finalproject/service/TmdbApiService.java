@@ -38,8 +38,7 @@ public class TmdbApiService {
 
 	
 	public List<SearchResultDto> searchContents(String query) {
-        
-        // '/search/multi' 엔드포인트를 사용하여 영화, TV를 모두 검색합니다.
+		   // '/search/multi' 엔드포인트를 사용하여 영화, TV를 모두 검색합니다.
         String uri = String.format("/search/multi?query=%s&include_adult=false&language=ko-KR&page=1", query);
 
         TmdbSearchResponseVO response = webClient.get()
@@ -56,7 +55,9 @@ public class TmdbApiService {
                 .collect(Collectors.toList());
         }
         return List.of();
-    }
+		}
+
+    
 	
     /**
      * 2. [선택 저장 기능] TMDB ID와 타입을 받아 상세 정보를 가져와 DB에 저장합니다.
