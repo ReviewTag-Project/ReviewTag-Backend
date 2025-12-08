@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kh.finalproject.dto.QuizDto;
-import com.kh.finalproject.error.NeedPermissionException;
-import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.service.QuizService;
 import com.kh.finalproject.vo.TokenVO;
 
@@ -36,8 +34,8 @@ public class QuizRestController {
 			@RequestAttribute TokenVO tokenVO
 			) {
 		//토큰에서 memberId 추출 한 후 작성자 설정
-		String memberId = tokenVO.getLoginId();
-		quizDto.setQuizCreatorId(memberId);
+		String loginId = tokenVO.getLoginId();
+		quizDto.setQuizCreatorId(loginId);
 		
 		return quizService.registQuiz(quizDto);
 	}
@@ -49,12 +47,9 @@ public class QuizRestController {
 			@RequestAttribute TokenVO tokenVO,
 			@PathVariable long contentsId
 			){
+		String loginId = tokenVO.getLoginId();
 		
-		//비회원은 나가라만 설정해도 되나?
-		if(tokenVO == null) throw new TargetNotfoundException();
-		
-		
-		return quizService.getQuizGame(contentsId, "TokenVO.getLoginId()");
+		return quizService.getQuizGame(contentsId, loginId);
 	}
 	
 	//해당 영화의 퀴즈 목록 조회 구문
@@ -65,20 +60,15 @@ public class QuizRestController {
 			@PathVariable long contentsId
 			) {
 		
-		//관리자 권한 체크 로직
-		boolean isAdmin = tokenVO.getLoginLevel().equals("관리자");
-		if(isAdmin == false) throw new NeedPermissionException();
+		String loginLevel = tokenVO.getLoginLevel();
 		
-		return quizService.getQuizList(contentsId);
+		return quizService.getQuizList(contentsId, loginLevel);
 	}
 	
 	//퀴즈 상세정보 조회
 	@GetMapping("/{quizId}")
-	public QuizDto detail(@PathVariable long quizId) {
-		
-		//quizId로 조회한 퀴즈가 없다면 나가는 코드 작성?
-		QuizDto findDto = quizService.getQuizDetail(quizId);
-		if(findDto == null) throw new TargetNotfoundException();
+	public QuizDto detail(@PathVariable long quizId
+			) {
 		
 		return quizService.getQuizDetail(quizId);
 	}
@@ -88,64 +78,40 @@ public class QuizRestController {
 	@PatchMapping("/")
 	public boolean update(
 			@RequestAttribute TokenVO tokenVO,
-			@RequestBody QuizDto quizDto) {
-		
-		//로그인 한 계정과 작성자의 아이디가 같은지 검사
+			@RequestBody QuizDto quizDto
+			) {
 		String loginId = tokenVO.getLoginId();
-		String creatorId = quizDto.getQuizCreatorId();
 		
-		boolean isCorrect = loginId.equals(creatorId);
-		if(isCorrect) throw new NeedPermissionException();
-		
-		return quizService.editQuiz(quizDto);
+		return quizService.editQuiz(quizDto, loginId);
 	}
 	
 	//퀴즈 상태 변경(BLIND)
 	@PatchMapping("/status")
 	public boolean changeStatus(
 			@RequestAttribute TokenVO tokenVO,
-			@RequestBody QuizDto quizDto) {
+			@RequestBody QuizDto quizDto
+			) {
 		
-		// quizDto에는 quizId와 quizStatus("BLIND")가 들어있어야 함
 		String loginId = tokenVO.getLoginId();
 		String loginLevel = tokenVO.getLoginLevel();
+
 		
-		//작성자 or 관리자인지 검사
-		boolean isOwner = loginId.equals(quizDto.getQuizCreatorId());
-		boolean isAdmin = loginLevel.equals("관리자");
-		
-		if(isOwner || isAdmin) throw new NeedPermissionException();
-		
-		return quizService.changeQuizStatus(quizDto);
+		return quizService.changeQuizStatus(quizDto, loginId, loginLevel);
 	}
-	
-	//신고 누적 횟수 변경
-	//중복 클릭 불가 처리 예정
-	@PatchMapping("/report/{quizId}")
-	public boolean reportQuiz(@PathVariable long quizId) {
-	    return quizService.reportQuiz(quizId);
-	}
+
 	
 	//퀴즈 삭제
 	@DeleteMapping("/{quizId}")
 	public boolean delete(
 			@RequestAttribute TokenVO tokenVO,
-			@PathVariable long quizId) {
+			@PathVariable long quizId
+			) {
 		
-		//TokenVO에서 loginId와 loginLevel 추출해서
+		//TokenVO에서 loginId와 loginLevel 추출
 		String loginId = tokenVO.getLoginId();
 		String loginLevel = tokenVO.getLoginLevel();
 		
-		//퀴즈가 있는지 검사
-		QuizDto findDto = quizService.getQuizDetail(quizId);
-		
-		//작성자 or 관리자인지 검사
-		boolean isOwner = loginId.equals(findDto.getQuizCreatorId());
-		boolean isAdmin = loginLevel.equals("관리자");
-		
-		if(isOwner || isAdmin) throw new NeedPermissionException();
-		
-		return quizService.deleteQuiz(quizId);
+		return quizService.deleteQuiz(quizId, loginId, loginLevel);
 	}
 	
 	
