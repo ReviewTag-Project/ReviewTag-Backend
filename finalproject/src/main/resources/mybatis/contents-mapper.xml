@@ -99,5 +99,42 @@
         WHERE
             C.contents_id = #{contentsId}
     </select>
+    
+    <select id="selectContentsByGenre" resultMap="contentDetailMap" parameterType="map">
+        SELECT
+            C.*,
+            CG.genre_name AS genre_name_alias
+        FROM
+            contents C
+        LEFT JOIN contents_genre_map CGM ON C.contents_id = CGM.contents_id
+        LEFT JOIN contents_genre CG ON CGM.genre_id = CG.genre_id
+        
+        WHERE C.contents_id IN (
+            SELECT 
+                sub_map.contents_id
+            FROM 
+                contents_genre_map sub_map
+            JOIN 
+                contents_genre sub_genre ON sub_map.genre_id = sub_genre.genre_id
+            WHERE
+                <choose>
+                    <when test="genreId != null">
+                        sub_genre.genre_id = #{genreId}
+                    </when>
+                    <when test="genreName != null">
+                        sub_genre.genre_name = #{genreName}
+                    </when>
+                </choose>
+        )
+        ORDER BY C.contents_release_date DESC
+    </select>
+    
+    <select id="selectGenreList" resultType="GenreDto">
+    	SELECT * FROM contents_genre
+    </select>
+    
+    <select id="detailGenre" resultType="GenreDto">
+    	SELECT * FROM contents_genre WHERE genre_id=#{genreId}
+    </select>
  	
  </mapper>

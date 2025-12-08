@@ -1,6 +1,8 @@
 package com.kh.finalproject.restcontroller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kh.finalproject.dao.contents.ContentsDao;
+import com.kh.finalproject.dao.contents.GenreDao;
 import com.kh.finalproject.dto.contents.ContentsDetailDto;
+import com.kh.finalproject.dto.contents.GenreDto;
 import com.kh.finalproject.dto.contents.SearchResultDto;
 import com.kh.finalproject.service.GenreService;
 import com.kh.finalproject.service.TmdbApiService;
@@ -31,6 +36,10 @@ public class TmdbDataRestController {
 		private GenreService genreService;
 		@Autowired
 		private TmdbApiService tmdbApiService;
+		@Autowired
+		private GenreDao genreDao;
+		@Autowired
+		private ContentsDao contentsDao;
 
 		
 		//DB에 장르 마스터 데이터를 초기 저장합니다. //1회만 실시
@@ -91,8 +100,22 @@ public class TmdbDataRestController {
 	     * DB에 저장된 특정 컨텐츠의 상세 정보와 장르 리스트를 조회합니다.
 	     * 예시: http://localhost:8080/api/tmdb/content/detail/11
 	     */
-	    @GetMapping("/content/detail/{contentsId}")
+	    @GetMapping("/contents/detail/{contentsId}")
 	    public ContentsDetailDto getContentDetail(@PathVariable Long contentsId) {
 	        return tmdbApiService.getContentDetailWithGenres(contentsId);
+	    }
+	    
+	    /* 장르 목록 */
+	    @GetMapping("/genre")
+	    public List<GenreDto> genreList() {
+	    	return genreDao.selectGenre();
+	    }
+ 	    
+	    @GetMapping("/contents/list/{genreName}")
+	    public List<ContentsDetailDto> selectListByGenre(@PathVariable String genreName) {
+	    	Map<String, Object> genre = new HashMap<>();
+	    	genre.put("genreName", genreName);
+	    	List<ContentsDetailDto> list = contentsDao.selectListByGenre(genre);
+	    	return list;
 	    }
 }
