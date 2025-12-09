@@ -139,6 +139,28 @@
         ORDER BY MAIN.contents_release_date DESC
     </select>
     
+    <select id="selectContentList" resultMap="contentDetailMap" parameterType="map">
+        SELECT 
+            MAIN.*, 
+            CG.genre_name AS genre_name_alias
+        FROM (
+            SELECT * FROM (
+                SELECT T.*, ROWNUM AS rn FROM (
+                    SELECT C.*
+                    FROM contents C
+                    ORDER BY C.contents_release_date DESC
+                ) T
+                WHERE ROWNUM &lt;= #{end}
+            )
+            WHERE rn &gt;= #{start}
+        ) MAIN
+        
+        LEFT JOIN contents_genre_map CGM ON MAIN.contents_id = CGM.contents_id
+        LEFT JOIN contents_genre CG ON CGM.genre_id = CG.genre_id
+        
+        ORDER BY MAIN.contents_release_date DESC
+    </select>
+    
     <select id="selectGenreList" resultType="GenreDto">
     	SELECT * FROM contents_genre
     </select>

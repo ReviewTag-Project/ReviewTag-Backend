@@ -28,4 +28,8 @@ public class ContentsDao {
     public List<ContentsDetailDto> selectListByGenre(Map<String, Object> params) {
     	return sqlSession.selectList("contents.selectContentsByGenre", params);
     }
+ // 전체 컨텐츠 목록 조회 (페이징)
+    public List<ContentsDetailDto> selectContentList(Map<String, Object> params) {
+        return sqlSession.selectList("contents.selectContentList", params);
+    }
  }
