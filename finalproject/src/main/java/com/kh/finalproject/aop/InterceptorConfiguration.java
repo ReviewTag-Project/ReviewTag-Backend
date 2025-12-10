@@ -25,7 +25,8 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
                 "/member/logout",      // 로그아웃
                 "/point/**",
                 "/review/**",
-                "/content/**"
+                "/content/**",
+                "/quiz/**"
                 // 포인트 관련 전체 (/point/history 등)
                 // "/point/store/**"   // 위 /point/** 가 이미 포함하므로 생략 가능
             )
