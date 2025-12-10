@@ -5,12 +5,12 @@
  <mapper namespace = "watchlist">
 
 	<!-- 등록 -->
-	<insert id="insert">
+	<insert id="insert" parameterType="WatchlistDto">
 		insert into watchlist(
 			watchlist_content, watchlist_member, watchlist_type
 		)
 		values(
-			#{watchlistContent},#{watchlistMember},#{watchlistType}
+			#{watchlistContent},#{watchlistMember},#{watchlistType})
 	</insert>
 	
 	<!-- 삭제 -->
