@@ -18,5 +18,6 @@ public class MemberQuizListVO {
 	private int quizLogQuizId;
 	private String quizLogIsCorrect;
 	private String quizQuestion;
-	
+	private int quizSolveCount;
+
 }

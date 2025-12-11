@@ -186,12 +186,12 @@ public class MemberRestController {
 		return memberWatchDao.selectList(loginId);
 	}
 	// 등록한 퀴즈 
-	@GetMapping("/addquiz/{loginId}")
+	@GetMapping("/myaddquiz/{loginId}")
 	public List<QuizDto>selectAddQuizList(@PathVariable String loginId){
 		return memberQuizDao.selectAddList(loginId);
 	}
 	// 내가 푼 퀴즈 목록
-	@GetMapping("/answerquiz/{loginId}")
+	@GetMapping("/myanswerquiz/{loginId}")
 	public List<MemberQuizListVO> selectAnwserQuizList(@PathVariable String loginId){
 		return memberQuizDao.selectAnswerList(loginId);
 	}

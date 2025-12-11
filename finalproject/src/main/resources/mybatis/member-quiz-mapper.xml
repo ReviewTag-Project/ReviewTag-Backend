@@ -9,7 +9,7 @@
 		select *
 		 from member_quiz
 		where quiz_log_member_id = #{loginId}
-		order by quiz_log_quiz_id desc;
+		order by quiz_log_quiz_id desc
 	</select>
 	
 
