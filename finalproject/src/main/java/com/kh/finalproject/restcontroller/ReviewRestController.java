@@ -19,6 +19,7 @@ import com.kh.finalproject.dao.ReviewLikeDao;
 import com.kh.finalproject.dto.ReviewDto;
 import com.kh.finalproject.error.TargetNotfoundException;
 import com.kh.finalproject.vo.ReviewLikeVO;
+import com.kh.finalproject.vo.ReviewVO;
 
 @CrossOrigin
 @RestController
@@ -37,13 +38,13 @@ public class ReviewRestController {
 
 	// 전체 리뷰 조회
 	@GetMapping("/reviewContents/{reviewContents}")
-	public List<ReviewDto> selectByContents(@PathVariable Long reviewContents) {
+	public List<ReviewVO> selectByContents(@PathVariable Long reviewContents) {
 		return reviewDao.selectByContents(reviewContents);
 	}
 
 	// 단일 리뷰 조회
 	@GetMapping("/{reviewContents}/{reviewNo}")
-	public ReviewDto selectOne(
+	public ReviewVO selectOne(
 			@PathVariable Long reviewContents,
 			@PathVariable Long reviewNo) {
 		return reviewDao.selectOne(reviewContents,reviewNo);
@@ -51,23 +52,23 @@ public class ReviewRestController {
 
 	// 로그인 리뷰 조회
 	@GetMapping("/user/{reviewContents}/{loginId}")
-	public ReviewDto selectByUserAndContents(@PathVariable String loginId, @PathVariable Long reviewContents) {
-		ReviewDto reviewDto = reviewDao.selectByUserAndContents(loginId, reviewContents);
-		return reviewDto;
+	public ReviewVO selectByUserAndContents(@PathVariable String loginId, @PathVariable Long reviewContents) {
+		ReviewVO reviewVO = reviewDao.selectByUserAndContents(loginId, reviewContents);
+		return reviewVO;
 	}
 
 //	//영화 제목으로 조회
 //	@GetMapping("/{contentsTitle}")
-//	public List<ReviewDto> selectByTitle(@PathVariable String contentsTitle) {
-//		List<ReviewDto> reviewList = reviewDao.detail(contentsTitle);
+//	public List<ReviewVO> selectByTitle(@PathVariable String contentsTitle) {
+//		List<ReviewVO> reviewList = reviewDao.detail(contentsTitle);
 //		if(reviewList == null || reviewList.isEmpty()) throw new TargetNotfoundException();
 //		return reviewList;
 //	}
 
 	// 컨텐츠 아이디로 조회
 	@GetMapping("/list/{contentsId}")
-	public List<ReviewDto> selectById(@PathVariable Long contentsId) {
-		List<ReviewDto> reviewList = reviewDao.selectListByContentsId(contentsId);
+	public List<ReviewVO> selectById(@PathVariable Long contentsId) {
+		List<ReviewVO> reviewList = reviewDao.selectListByContentsId(contentsId);
 		if (reviewList == null || reviewList.isEmpty())
 			throw new TargetNotfoundException();
 		return reviewList;
@@ -76,8 +77,8 @@ public class ReviewRestController {
 	// 수정
 	@PatchMapping("/{reviewNo}")
 	public void updateUnit(@RequestBody ReviewDto reviewDto, @PathVariable Long reviewNo) {
-		ReviewDto originDto = reviewDao.selectOne(reviewNo);
-		if (originDto == null)
+		ReviewVO originVO = reviewDao.selectOne(reviewNo);
+		if (originVO == null)
 			throw new TargetNotfoundException();
 
 		reviewDto.setReviewNo(reviewNo);
@@ -91,8 +92,8 @@ public class ReviewRestController {
 	// 삭제
 	@DeleteMapping("/{reviewNo}")
 	public void delete(@PathVariable Long reviewNo) {
-		ReviewDto originDto = reviewDao.selectOne(reviewNo);
-		if (originDto == null)
+		ReviewVO originVO = reviewDao.selectOne(reviewNo);
+		if (originVO == null)
 			throw new TargetNotfoundException();
 
 		boolean success = reviewDao.delete(reviewNo);
