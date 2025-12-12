@@ -90,21 +90,7 @@ public class ReviewRestController {
 		}
 	}
 
-	// 삭제
-//	@DeleteMapping("/{reviewNo}")
-//	public void delete(
-//			@PathVariable Long reviewNo) {
-//		System.out.println("삭제 메서드 진입");
-//		ReviewDto originDto = reviewDao.selectOne(reviewNo);
-//		if (originDto == null)
-//			throw new TargetNotfoundException();
-//
-//		boolean success = reviewDao.delete(reviewNo);
-//		if (!success) {
-//			throw new TargetNotfoundException(); // 삭제실패
-//		}
-//	}
-	
+//삭제
 	@DeleteMapping("/{reviewContents}/{reviewNo}")
     public void delete(
         @PathVariable("reviewContents") Long reviewContents,
