@@ -21,7 +21,15 @@ public class MemberQuizListVO {
 	private int quizSolveCount;
 	private int quizContentsId;
 	private String contentsTitle;
-
+	private int correctCount;
+	
+	public double getCorrectRate() {
+		if(quizSolveCount==0) {
+			return 0;
+		} else {
+			return (double) correctCount / quizSolveCount;
+		}
+	}
 
 
 }
