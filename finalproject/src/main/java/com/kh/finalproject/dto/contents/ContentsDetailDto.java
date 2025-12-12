@@ -28,4 +28,8 @@ public class ContentsDetailDto {
 	
 	private double contentsRateAvg;
 	private double contentsPriceAvg;
+	
+	private Integer contentsRateRank;
+	private Integer contentsPriceRank;
+	
 }
