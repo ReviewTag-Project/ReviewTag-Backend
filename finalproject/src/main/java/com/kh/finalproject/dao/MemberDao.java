@@ -1,6 +1,8 @@
 package com.kh.finalproject.dao;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,9 +74,5 @@ public class MemberDao {
 	public boolean delete(String memberId) {
 		return sqlSession.delete("member.delete",memberId) > 0;
 	}
-
-
-	
-	
-	
+    
 }
