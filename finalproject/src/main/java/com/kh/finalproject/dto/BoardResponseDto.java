@@ -1,4 +1,4 @@
-package com.kh.finalproject.dto.board;
+package com.kh.finalproject.dto;
 
 
 import lombok.AllArgsConstructor;
