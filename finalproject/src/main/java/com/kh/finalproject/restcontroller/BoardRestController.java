@@ -48,6 +48,12 @@ public class BoardRestController {
 	public List<BoardDto> selesctListByContents(@PathVariable long contentsId){
 		return boardDao.selesctListByContents(contentsId);
 	}
+	// 컨텐츠별 5개 조회
+	@GetMapping("/contentsId/{contentsId}/5")
+	public List<BoardDto> selesctListBy5Contents(@PathVariable long contentsId){
+		return boardDao.selesctListBy5Contents(contentsId);
+	}
+	
 	
 	// 게시글 삭제
 	@DeleteMapping("/{boardNo}")
