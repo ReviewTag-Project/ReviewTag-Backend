@@ -60,13 +60,11 @@ public class AdminRestController {
 		pageVO.setPage(page);
 		
 		if(type != "" && keyword != "") { // 검색일때
-			System.out.println("검색 실행");
 			int totalCount =memberDao.countSearchMember(type, keyword);
 			pageVO.setTotalCount(totalCount);
 			List<MemberDto> list = memberDao.selectAdminMemberList(type, keyword, pageVO);
 			return new PageResponseVO<>(list, pageVO);
 		} else { // 검색이 아닐때
-			System.out.println("일반목록 실행");
 			int totalCount =memberDao.countMember();
 			pageVO.setTotalCount(totalCount);
 			List<MemberDto> list = memberDao.selectListExceptAdmin(pageVO);
