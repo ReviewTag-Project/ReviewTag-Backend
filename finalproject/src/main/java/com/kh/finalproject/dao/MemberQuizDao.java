@@ -34,9 +34,17 @@ public class MemberQuizDao {
 	
 	/// 내가 푼 퀴즈 관련 항목
 	// 푼 퀴즈 리스트
-	public List<MemberQuizListVO> selectAnswerList(String loginId){
-		return sqlSession.selectList("memberQuiz.listByAnswerQuiz",loginId);
+	public List<MemberQuizListVO> selectAnswerListWithPage(String loginId, PageVO pageVO){
+		Map<String, Object> param = new HashMap<>();
+		param.put("loginId", loginId);
+		param.put("pageVO", pageVO);
+		return sqlSession.selectList("memberQuiz.listByAnswerQuizWithPage",param);
 	}
+	public int countAnswerQuiz(String loginId) {
+		return sqlSession.selectOne("memberQuiz.countAnswerQuiz", loginId);
+	}
+	
+	
 	// 푼 퀴즈 정답률
 	public List<MemberQuizRateVO> selectAnswerQuizRate(String loginId){
 		return sqlSession.selectList("memberQuiz.listByAnswerQuizRate", loginId);

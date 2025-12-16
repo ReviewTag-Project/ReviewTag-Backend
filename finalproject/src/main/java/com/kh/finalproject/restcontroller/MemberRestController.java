@@ -201,15 +201,21 @@ public class MemberRestController {
 		PageVO pageVO = new PageVO();
 		pageVO.setPage(page);
 		pageVO.setTotalCount(totalCount);
-		
-		 List<MemberAddQuizListVO> list =
+		List<MemberAddQuizListVO> list =
 			     memberQuizDao.selectMyQuizListWithPage(loginId, pageVO);
-		 return new PageResponseVO<>(list, pageVO);
+		return new PageResponseVO<>(list, pageVO);
 	}
 	// 내가 푼 퀴즈 목록
-	@GetMapping("/myanswerquiz/{loginId}")
-	public List<MemberQuizListVO> selectAnwserQuizList(@PathVariable String loginId){
-		return memberQuizDao.selectAnswerList(loginId);
+	@GetMapping("/myanswerquiz/{loginId}/{page}")
+	public PageResponseVO<MemberQuizListVO> selectAnwserQuizList(
+			@PathVariable String loginId, @PathVariable int page){
+		int totalCount = memberQuizDao.countAnswerQuiz(loginId);
+		PageVO pageVO = new PageVO();
+		pageVO.setPage(page);
+		pageVO.setTotalCount(totalCount);
+		List<MemberQuizListVO> list =
+			     memberQuizDao.selectAnswerListWithPage(loginId, pageVO);
+		return new PageResponseVO<>(list, pageVO);
 	}
 	// 내가 푼 퀴즈 정답률
 	@GetMapping("/myanswerRate/{loginId}")
