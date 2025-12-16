@@ -29,7 +29,7 @@ public class PointService {
     @Autowired private PointHistoryDao pointHistoryDao;
     @Autowired private PointWishlistDao pointWishlistDao;
     @Autowired private MemberIconDao memberIconDao;
-
+    @Autowired private DailyQuestService dailyQuestService;
     // 등급 점수 변환
     private int getLevelWeight(String level) {
         if (level == null) return 0;
@@ -351,7 +351,7 @@ public class PointService {
             // ★ [수정] 룰렛 결과 지급도 "GET"으로 통일
             addPoint(loginId, rewardPoint, "GET");
         }
-
+        dailyQuestService.questProgress(loginId, "ROULETTE");
         return targetIndex;
     }
 
