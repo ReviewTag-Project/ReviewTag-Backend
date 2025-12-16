@@ -8,14 +8,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.finalproject.dao.HeartDao;
+import com.kh.finalproject.dao.MemberDao;
 import com.kh.finalproject.dto.HeartDto;
+import com.kh.finalproject.dto.MemberDto;
 import com.kh.finalproject.error.NeedPermissionException;
+import com.kh.finalproject.error.NotEnoughHeartException;
 
 @Service
 public class HeartService {
 
 	@Autowired
 	private HeartDao heartDao;
+	
+	@Autowired
+	private MemberDao memberDao;
 	
 	//하트 충전
 	@Transactional
@@ -53,8 +59,15 @@ public class HeartService {
 	//퀴즈 시작 시 하트 차감
 	@Transactional
 	public void useHeartForQuiz(String memberId) {
-		//회원인지 조회
-		if(memberId == null) throw new NeedPermissionException();
+		
+		//회원 조회
+		MemberDto findDto = memberDao.selectOne(memberId);
+        if(findDto == null) throw new NeedPermissionException();
+		
+        //관리자는 무제한 퀴즈 풀기 가능
+        if("관리자".equals(findDto.getMemberLevel())) {
+            return;
+        }
 		
 		//상태 최신화
 		checkAndRefill(memberId);
@@ -64,7 +77,7 @@ public class HeartService {
 		
 		//실패 시 예외 발생
 		if(result == 0) {
-			throw new IllegalStateException("하트가 부족하여 퀴즈를 시작할 수 없습니다.");
+			throw new NotEnoughHeartException("하트가 부족해요.");
 		}
 	}
 	
