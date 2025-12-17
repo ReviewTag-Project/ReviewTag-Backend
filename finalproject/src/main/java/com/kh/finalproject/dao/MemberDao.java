@@ -111,12 +111,17 @@ public class MemberDao {
 		return sqlSession.delete("member.delete",memberId) > 0;
 	}
 	
+
 	// 좋아요 신뢰도
 	public void updateReliabilitySet(String memberId, int rel) {
 		Map<String, Object> param = new HashMap<>();
 		param.put("memberId", memberId);
 		param.put("rel", rel);
 		sqlSession.update("member.updateReliabilitySet", param);
+
+	public MemberDto selectMap(String memberId) {
+	    return sqlSession.selectOne("member.selectMap", memberId);
+
 	}
     
 }
