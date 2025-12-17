@@ -101,13 +101,6 @@ public class MemberDao {
 			param.put("rel", rel);		
 			sqlSession.update("member.updateReliability", param);
 		}
-		//(신뢰도 갱신2)
-		public void deleteReliability(String memberId, int rel) {
-			Map<String, Object> param = new HashMap<>();
-			param.put("memberId", memberId);
-			param.put("rel", rel);
-			sqlSession.update("member.deleteReliability", param);
-		}
 		//(회원등급 수정)
 		public boolean updateMemberLevel(MemberDto memberDto) {
 			return sqlSession.update("member.updateMemberLevel", memberDto) > 0;
@@ -116,6 +109,14 @@ public class MemberDao {
 	/// 삭제 (회원탈퇴)
 	public boolean delete(String memberId) {
 		return sqlSession.delete("member.delete",memberId) > 0;
+	}
+	
+	// 좋아요 신뢰도
+	public void updateReliabilitySet(String memberId, int rel) {
+		Map<String, Object> param = new HashMap<>();
+		param.put("memberId", memberId);
+		param.put("rel", rel);
+		sqlSession.update("member.updateReliabilitySet", param);
 	}
     
 }

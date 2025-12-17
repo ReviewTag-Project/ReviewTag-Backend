@@ -75,12 +75,12 @@
 		delete review where
 		review_contents = #{reviewContents} and
 		review_no = #{reviewNo}
-		
-<!-- 		update member -->
-<!-- 		set member_reliability = member_reliability - review_realiability -->
-<!-- 		where member_id = review_writer -->
 	</delete>
 	
+	<!-- 리뷰 쓴사람 조회 -->
+	<select id="findWriterByReviewNo" resultType="String">
+		select review_writer from review where review_no = ${reviewNo}
+	</select>
 
 	<!-- 좋아요 관련 -->
 	<update id="updateReviewLike">

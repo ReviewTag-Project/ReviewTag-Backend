@@ -97,11 +97,12 @@ public class ReviewRestController {
         @PathVariable("reviewContents") Long reviewContents,
         @PathVariable("reviewNo") Long reviewNo
     ) {
-        System.out.println("삭제 메서드 진입");
-
+		
         ReviewDto originDto = reviewDao.selectOne(reviewContents, reviewNo);
+       
         if(originDto == null) throw new TargetNotfoundException();
-
+        reviewService.deleteReview(reviewContents, reviewNo);
+        
         boolean success = reviewDao.delete(reviewContents, reviewNo);
         if(!success) throw new TargetNotfoundException();
     }
@@ -125,6 +126,8 @@ public class ReviewRestController {
 		} else {// 좋아요 안한 상태면
 			reviewLikeDao.insert(loginId, reviewNo);
 		}
+		
+		reviewService.LikeReviewRel(reviewNo); //좋아요 상태 = 신뢰도 반영
 
 		Long count = reviewLikeDao.countByReviewNo(reviewNo);
 
