@@ -55,9 +55,8 @@ public class BoardRestController {
 	@Autowired
 	private BoardResponseDao boardResponseDao;
 	@Autowired
-
 	private DailyQuestService dailyQuestService;
-
+	@Autowired
 	private ReplyDao replyDao;
 
 
