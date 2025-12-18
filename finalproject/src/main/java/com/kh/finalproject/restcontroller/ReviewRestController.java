@@ -102,12 +102,7 @@ public class ReviewRestController {
        
         if(originDto == null) throw new TargetNotfoundException();
         reviewService.deleteReview(reviewContents, reviewNo);
-        
-        boolean success = reviewDao.delete(reviewContents, reviewNo);
-        if(!success) throw new TargetNotfoundException();
     }
-
-
 
 	// 좋아요 관련
 
