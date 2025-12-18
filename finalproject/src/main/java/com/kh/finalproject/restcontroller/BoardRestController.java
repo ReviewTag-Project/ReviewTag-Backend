@@ -102,6 +102,9 @@ public class BoardRestController {
 			@RequestParam(required = false) String keyword){
 		int totalCount =boardDao.countBoard(column, keyword);
 
+		System.out.println("---------column : "+column);
+		System.out.println("---------keyword : "+keyword);
+		
 		PageVO pageVO = new PageVO();
 		pageVO.setPage(page);
 		pageVO.setTotalCount(totalCount);
