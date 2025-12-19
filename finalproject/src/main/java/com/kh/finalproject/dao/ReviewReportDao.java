@@ -43,4 +43,4 @@ public class ReviewReportDao {
 	public List<Map<String, Object>> countByType(long reviewReportReviewId){
 		return sqlSession.selectList("reviewReport.countByType", reviewReportReviewId);
 	}
-
+}
