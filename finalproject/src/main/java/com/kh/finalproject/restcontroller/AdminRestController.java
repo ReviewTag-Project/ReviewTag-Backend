@@ -440,7 +440,7 @@ public class AdminRestController {
       }
   	
   	
-  
+  	
         // 1. 지급 가능한 전체 아이템 목록 조회 (상점 데이터)
         @GetMapping("/inventory/item-list")
         public List<PointItemStoreDto> getItemList() {

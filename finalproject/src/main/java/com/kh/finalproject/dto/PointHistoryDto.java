@@ -14,8 +14,9 @@ public class PointHistoryDto {
     private Long pointHistoryId;         
     private String pointHistoryMemberId; 
     private int pointHistoryAmount;        
-    // CHECK 제약조건: 'GET','USE','SEND','RECEIVED'
-    private String pointHistoryTrxType;  
+    private String pointHistoryTrxType;  // GET, USE, SEND, RECEIVED
+    private String pointHistoryReason;   // <--- 추가된 필드 (적립/사용 사유)
+    
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private Timestamp pointHistoryCreatedAt; 
 }

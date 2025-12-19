@@ -30,7 +30,7 @@ public class PointService {
     @Autowired private PointWishlistDao pointWishlistDao;
     @Autowired private MemberIconDao memberIconDao;
     @Autowired private DailyQuestService dailyQuestService;
-    @Autowired private HeartService heartService;
+
     // [1] 유틸리티: 등급 가중치
     private int getLevelWeight(String level) {
         if (level == null) return 0;
@@ -42,46 +42,57 @@ public class PointService {
         }
     }
 
-    // [2] 포인트 증감 공통 메서드 (핵심)
+    // [2] 포인트 증감 공통 메서드 (사유 필드 추가)
     @Transactional
-    public boolean addPoint(String memberId, int amount, String trxType) {
+    public boolean addPoint(String memberId, int amount, String trxType, String reason) {
         MemberDto dto = new MemberDto();
         dto.setMemberId(memberId);
         dto.setMemberPoint(amount); 
+        
         if (memberDao.upPoint(dto)) {
+            // 히스토리에 사유(Reason)를 함께 저장
             pointHistoryDao.insert(PointHistoryDto.builder()
                 .pointHistoryMemberId(memberId)
                 .pointHistoryAmount(amount)
                 .pointHistoryTrxType(trxType)
+                .pointHistoryReason(reason)
                 .build());
             return true;
         }
         return false;
     }
-    
 
-    // ★ 복구: 출석 체크 및 외부 포인트 지급 로직
+    // [2-1] 출석 체크 보상
     @Transactional
     public void addAttendancePoint(String loginId, int amount, String memo) {
-        // memo는 히스토리 trxType으로 활용하거나 로그용으로 사용
-        addPoint(loginId, amount, "GET");
+        // memo 파라미터를 사유로 직접 사용 (예: "7일 연속 출석 보상")
+        addPoint(loginId, amount, "GET", memo);
     }
 
-    // [3] 상점 트랜잭션 (구매/선물)
+    // [3] 상점 트랜잭션 (구매/선물 공통 로직)
     private void processTransaction(String senderId, String receiverId, long itemNo, String trxType) {
         PointItemStoreDto item = pointItemDao.selectOneNumber(itemNo);
-        if (item == null || item.getPointItemStock() <= 0) throw new RuntimeException("상품 오류/품절");
+        if (item == null || item.getPointItemStock() <= 0) throw new RuntimeException("상품 오류 또는 품절된 상품입니다.");
 
+        // 한정판/단일 아이템 중복 보유 체크
         if (item.getPointItemIsLimitedPurchase() == 1) {
             boolean alreadyHas = inventoryDao.selectListByMemberId(receiverId).stream()
                 .anyMatch(i -> i.getInventoryItemNo() == itemNo);
-            if (alreadyHas) throw new RuntimeException("이미 보유 중");
+            if (alreadyHas) throw new RuntimeException("이미 보유 중인 아이템입니다.");
         }
 
-        addPoint(senderId, -(int)item.getPointItemPrice(), trxType);
+        // 포인트 차감 및 사유 기록
+        String reason = (trxType.equals("USE")) ? "아이템 구매: " + item.getPointItemName() 
+                                                : "선물 보냄: " + item.getPointItemName();
+        
+        // 만약 선물 받는 사람에게도 내역을 남기고 싶다면 여기서 추가 로직 작성 가능
+        addPoint(senderId, -(int)item.getPointItemPrice(), trxType, reason);
+
+        // 재고 차감
         item.setPointItemStock(item.getPointItemStock() - 1);
         pointItemDao.update(item);
 
+        // 인벤토리 지급
         InventoryDto inven = inventoryDao.selectListByMemberId(receiverId).stream()
             .filter(i -> i.getInventoryItemNo() == itemNo).findFirst().orElse(null);
 
@@ -101,7 +112,7 @@ public class PointService {
     @Transactional public void purchaseItem(String id, long no) { processTransaction(id, id, no, "USE"); }
     @Transactional public void giftItem(String sid, String tid, long no) { processTransaction(sid, tid, no, "SEND"); }
 
-    // [4] 인벤토리 관리 (사용/해제/환불)
+    // [4] 인벤토리 관리 (아이템 실제 사용 효과)
     @Transactional
     public void useItem(String loginId, long inventoryNo, String extraValue) {
         InventoryDto inven = inventoryDao.selectOne(inventoryNo);
@@ -115,20 +126,22 @@ public class PointService {
                 dto.setMemberNickname(extraValue);
                 memberDao.updateNickname(dto);
                 decreaseInventoryOrDelete(inven);
-                break;	
+                break;    
             case "VOUCHER":
             case "RANDOM_POINT":
                 int amount = type.equals("VOUCHER") ? (int)item.getPointItemPrice() : (int)(Math.random()*1901)+100;
-                addPoint(loginId, amount, "GET");
+                String reason = type.equals("VOUCHER") ? "포인트 상품권 사용 보상" : "랜덤 포인트 박스 오픈";
+                addPoint(loginId, amount, "GET", reason);
                 decreaseInventoryOrDelete(inven);
                 break;
             case "HEART_TICKET":
-            break;
+                // 하트 충전 로직 (HeartService 연동 필요 시 추가)
+                break;
             case "DECO_NICK":
             case "DECO_BG":
             case "DECO_ICON":
             case "DECO_FRAME":
-                this.unequipByType(loginId, type);
+                this.unequipByType(loginId, type); // 같은 타입 중복 장착 해제
                 inven.setInventoryEquipped("Y");
                 inventoryDao.update(inven);
                 break;
@@ -163,11 +176,15 @@ public class PointService {
         }
     }
 
+    // [4-1] 아이템 환불 (구매 취소)
     @Transactional
     public void cancelItem(String loginId, long inventoryNo) {
         InventoryDto inven = inventoryDao.selectOne(inventoryNo);
         PointItemStoreDto item = pointItemDao.selectOneNumber(inven.getInventoryItemNo());
-        addPoint(loginId, (int)item.getPointItemPrice(), "GET");
+        
+        // 포인트 복구 및 사유 기록
+        addPoint(loginId, (int)item.getPointItemPrice(), "GET", "상품 구매 취소 환불: " + item.getPointItemName());
+        
         item.setPointItemStock(item.getPointItemStock() + 1);
         pointItemDao.update(item);
         decreaseInventoryOrDelete(inven);
@@ -176,53 +193,75 @@ public class PointService {
     // [5] 후원 및 내역 조회
     @Transactional
     public void donatePoints(String loginId, String targetId, int amount) {
-        addPoint(loginId, -amount, "SEND");
-        addPoint(targetId, amount, "RECEIVED");
+        addPoint(loginId, -amount, "SEND", targetId + "님에게 포인트 후원");
+        addPoint(targetId, amount, "RECEIVED", loginId + "님으로부터 포인트 후원");
     }
-
     public PointHistoryPageVO getHistoryList(String loginId, int page, String type) {
         int size = 10;
         int startRow = (page - 1) * size + 1;
         int endRow = page * size;
+
+        // 1. 실제 목록 조회
+        List<PointHistoryDto> list = pointHistoryDao.selectListByMemberIdPaging(loginId, startRow, endRow, type);
+
+        // 2. 전체 개수 조회 (리액트의 totalCount를 위해 필요)
+        int totalCount = pointHistoryDao.countHistory(loginId, type);
+
+        // 3. 전체 페이지 계산
+        int totalPage = (totalCount + size - 1) / size;
+
+        // 4. VO 객체 생성 및 반환
         return PointHistoryPageVO.builder()
-                .list(pointHistoryDao.selectListByMemberIdPaging(loginId, startRow, endRow, type))
-                .totalPage((pointHistoryDao.countHistory(loginId, type) + size - 1) / size)
+                .list(list)
+                .totalCount(totalCount) // ★ 이 값이 없으면 리액트에서 0으로 보임
+                .totalPage(totalPage)
                 .currentPage(page)
                 .build();
     }
-
-    // [6] 위시리스트
+   
+    // [6] 위시리스트 토글
     @Transactional
     public boolean toggleWish(String loginId, long itemNo) {
         PointItemWishVO vo = PointItemWishVO.builder().memberId(loginId).itemNo(itemNo).build();
-        if (pointWishlistDao.checkWish(vo) > 0) { pointWishlistDao.delete(vo); return false; }
-        else { pointWishlistDao.insert(vo); return true; }
+        if (pointWishlistDao.checkWish(vo) > 0) { 
+            pointWishlistDao.delete(vo); 
+            return false; 
+        } else { 
+            pointWishlistDao.insert(vo); 
+            return true; 
+        }
     }
     public List<Long> getMyWishItemNos(String id) { return pointWishlistDao.selectMyWishItemNos(id); }
     public List<PointWishlistDto> getMyWishlist(String id) { return pointWishlistDao.selectMyWishlist(id); }
     @Transactional public void deleteWish(String id, long no) { pointWishlistDao.delete(PointItemWishVO.builder().memberId(id).itemNo(no).build()); }
 
-    // [7] 룰렛 및 정보 조회
+    // [7] 룰렛 플레이
     @Transactional
     public int playRoulette(String loginId) {
         InventoryDto ticket = inventoryDao.selectListByMemberId(loginId).stream()
                 .filter(i -> "RANDOM_ROULETTE".equals(i.getPointItemType())).findFirst().orElseThrow();
+        
         int targetIndex = (int)(Math.random() * 6);
         int reward = (targetIndex == 4) ? 2000 : (targetIndex == 0) ? 1000 : 0;
+        
         decreaseInventoryOrDelete(ticket);
-        if (reward > 0) addPoint(loginId, reward, "GET");
+        
+        if (reward > 0) {
+            addPoint(loginId, reward, "GET", "룰렛 당첨 보상 (" + reward + "P)");
+        }
+        
         dailyQuestService.questProgress(loginId, "ROULETTE");
         return targetIndex;
     }
 
+    // [8] 사용자 정보 조회 (프로필 꾸미기 포함)
     public MemberPointVO getMyPointInfo(String id) {
         MemberDto m = memberDao.selectMap(id);
         if (m == null) return null;
-
-        // 아이콘은 이미지가 필요하므로 Src 유지, 나머지는 Style(Content) 조회
+        	
         String iconSrc = memberIconDao.selectEquippedIconSrc(id);
-        String frameStyle = memberIconDao.selectEquippedFrameStyle(id); // "frame-gold"
-        String bgStyle = memberIconDao.selectEquippedBgStyle(id);       // "bg-ice"
+        String frameStyle = memberIconDao.selectEquippedFrameStyle(id); 
+        String bgStyle = memberIconDao.selectEquippedBgStyle(id);       
         String nickStyle = memberIconDao.selectEquippedNickStyle(id);
 
         if (iconSrc == null) iconSrc = "https://i.postimg.cc/Wb3VBy9v/null.png";
@@ -231,14 +270,16 @@ public class PointService {
                 .nickname(m.getMemberNickname())
                 .point(m.getMemberPoint())
                 .iconSrc(iconSrc)
-                .frameSrc(frameStyle) // VO의 필드명은 유지하되 데이터는 클래스명 전달
+                .frameSrc(frameStyle) 
                 .bgSrc(bgStyle)
                 .nickStyle(nickStyle)
                 .build();
     }
-    // 관리자 기능
+
+    // [9] 관리자 전용 아이템 관리
     @Transactional public void addItem(String id, PointItemStoreDto d) { pointItemDao.insert(d); }
     @Transactional public void editItem(String id, PointItemStoreDto d) { pointItemDao.update(d); }
     @Transactional public void deleteItem(String id, long no) { pointItemDao.delete(no); }
     @Transactional public void discardItem(String id, long no) { inventoryDao.delete(no); }
+    
 }

@@ -35,6 +35,16 @@ public class PointStoreRestController {
     public List<PointItemStoreDto> list() { 
         return pointItemDao.selectList(); 
     }
+    @GetMapping("/history")
+    public PointHistoryPageVO history(
+            @RequestAttribute(value="loginId", required=false) String loginId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "all") String type) {
+        
+        if(loginId == null) return null;
+        // PointHistoryPageVO 객체를 반환 (list, totalPage 등을 포함)
+        return pointService.getHistoryList(loginId, page, type);
+    }
 
     // 2. 구매 (POST /point/main/store/buy)
     @PostMapping("/buy")
