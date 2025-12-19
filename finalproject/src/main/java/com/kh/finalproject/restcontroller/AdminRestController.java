@@ -1,11 +1,14 @@
 package com.kh.finalproject.restcontroller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession; // [추가]
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +26,20 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kh.finalproject.dao.BoardDao;
 import com.kh.finalproject.dao.BoardReportDao;
 import com.kh.finalproject.dao.DailyQuizDao;
+import com.kh.finalproject.dao.InventoryDao;
 import com.kh.finalproject.dao.MemberDao;
+import com.kh.finalproject.dao.MemberIconDao;
 import com.kh.finalproject.dao.MemberTokenDao;
+
 import com.kh.finalproject.dto.BoardDto;
+
+import com.kh.finalproject.dao.PointItemStoreDao;
+
 import com.kh.finalproject.dto.IconDto;
+import com.kh.finalproject.dto.InventoryDto;
 import com.kh.finalproject.dto.MemberDto;
+import com.kh.finalproject.dto.MemberIconDto;
+import com.kh.finalproject.dto.PointItemStoreDto;
 import com.kh.finalproject.dto.QuizDto;
 import com.kh.finalproject.error.NeedPermissionException;
 import com.kh.finalproject.error.TargetNotfoundException;
@@ -73,6 +85,15 @@ public class AdminRestController {
     
 	@Autowired
 	private DailyQuizDao dailyQuizDao;
+
+	@Autowired
+	private InventoryDao inventoryDao;
+	 @Autowired
+	 private PointItemStoreDao pointItemStoreDao; 
+	 @Autowired
+	 private MemberIconDao memberIconDao;
+
+
 	
 	@Autowired
 	private BoardDao boardDao;
@@ -82,6 +103,7 @@ public class AdminRestController {
 	
 	
 	
+
 	//기존 회원 목록 조회(관리자 제외, 일반 페이징)
 	@GetMapping("/members") 
 	public PageResponseVO getMemberList(
@@ -357,7 +379,23 @@ public class AdminRestController {
         return result ? "success" : "fail";
     }
     
-    // -------------------------------------------------------------
+
+    @GetMapping("/inventory/{memberId}")
+    public List<InventoryDto> getUserInventory(@PathVariable String memberId) {
+        return inventoryDao.selectListByAdmin(memberId);
+    }
+
+    @DeleteMapping("/inventory/{inventoryNo}")
+    public ResponseEntity<String> recallItem(@PathVariable long inventoryNo) {
+        boolean isDeleted = inventoryDao.delete(inventoryNo);
+        
+        if (isDeleted) {
+            return ResponseEntity.ok("Item successfully recalled.");
+        } else {
+            return ResponseEntity.status(404).body("Item not found or recall failed.");
+        }
+    }
+    // ------------------------------------------------------------
 
   	//게시판 신고 관리 페이지
   	@GetMapping("/board/reports")
@@ -416,6 +454,61 @@ public class AdminRestController {
       }
   	
   	
-}
+  
+        // 1. 지급 가능한 전체 아이템 목록 조회 (상점 데이터)
+        @GetMapping("/inventory/item-list")
+        public List<PointItemStoreDto> getItemList() {
+            return pointItemStoreDao.selectList(); 
+        }
+
+        // 2. 특정 사용자에게 아이템 지급
+        @PostMapping("/inventory/{memberId}/{itemNo}")
+        public ResponseEntity<Void> grantItem(@PathVariable String memberId, @PathVariable long itemNo) {
+            InventoryDto dto = new InventoryDto();
+            dto.setInventoryMemberId(memberId);
+            dto.setInventoryItemNo(itemNo);
+            inventoryDao.insert(dto); // 
+            return ResponseEntity.ok().build();
+        }
+     // 특정 유저의 아이콘 목록 조회
+        @GetMapping("/icon/{memberId}")
+        public List<MemberIconDto> getUserIcons(@PathVariable String memberId) {
+            List<MemberIconDto> list = memberIconDao.selectUserIcon(memberId);
+            return list == null ? new ArrayList<>() : list;
+        }
+
+        @GetMapping("/icon/list")
+        public List<IconDto> getIconList() {
+            return memberIconDao.selectIconList();
+        }
+
+        @PostMapping("/icon/{memberId}/{iconId}")
+        public ResponseEntity<String> grantIcon(
+                @PathVariable String memberId,
+                @PathVariable int iconId) {
+
+            int count = memberIconDao.checkUserHasIcon(memberId, iconId);
+            if (count > 0) {
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body("이미 보유 중");
+            }
+
+            memberIconDao.insertMemberIcon(memberId, iconId);
+            return ResponseEntity.ok("지급 완료");
+        }
+
+        @DeleteMapping("/icon/{memberIconId}")
+        public ResponseEntity<Void> recallIcon(
+                @PathVariable long memberIconId) {
+
+            int result = memberIconDao.deleteMemberIcon(memberIconId);
+            return result > 0
+                    ? ResponseEntity.ok().build()
+                    : ResponseEntity.notFound().build();
+        }
+        
+    }
+
 
 

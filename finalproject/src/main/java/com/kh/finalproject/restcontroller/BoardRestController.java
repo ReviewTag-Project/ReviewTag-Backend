@@ -57,6 +57,7 @@ public class BoardRestController {
 	private DailyQuestService dailyQuestService;
 	@Autowired
 	private ReplyDao replyDao;
+
 	@Autowired
 	private PointService pointService;
 	@Autowired
@@ -64,9 +65,14 @@ public class BoardRestController {
 
 	// 게시글 등록
 	@PostMapping("/")
+
+	
+		
+
 	public void insert(@RequestAttribute TokenVO tokenVO,
 								@RequestBody BoardDto boardDto) {
 		String loginId = tokenVO.getLoginId();
+
 		int boardNo =  boardDao.insert(boardDto);
 		int getPoint = 10;
 		pointService.addAttendancePoint(loginId, getPoint, "GET");
@@ -102,6 +108,9 @@ public class BoardRestController {
 			@RequestParam(required = false) String keyword){
 		int totalCount =boardDao.countBoard(column, keyword);
 
+		System.out.println("---------column : "+column);
+		System.out.println("---------keyword : "+keyword);
+		
 		PageVO pageVO = new PageVO();
 		pageVO.setPage(page);
 		pageVO.setTotalCount(totalCount);
