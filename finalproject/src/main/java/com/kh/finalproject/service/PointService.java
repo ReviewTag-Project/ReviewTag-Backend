@@ -30,7 +30,7 @@ public class PointService {
     @Autowired private PointWishlistDao pointWishlistDao;
     @Autowired private MemberIconDao memberIconDao;
     @Autowired private DailyQuestService dailyQuestService;
-
+    @Autowired private HeartService heartService;
     // [1] 유틸리티: 등급 가중치
     private int getLevelWeight(String level) {
         if (level == null) return 0;
@@ -58,6 +58,7 @@ public class PointService {
         }
         return false;
     }
+    
 
     // ★ 복구: 출석 체크 및 외부 포인트 지급 로직
     @Transactional
@@ -114,13 +115,15 @@ public class PointService {
                 dto.setMemberNickname(extraValue);
                 memberDao.updateNickname(dto);
                 decreaseInventoryOrDelete(inven);
-                break;
+                break;	
             case "VOUCHER":
             case "RANDOM_POINT":
                 int amount = type.equals("VOUCHER") ? (int)item.getPointItemPrice() : (int)(Math.random()*1901)+100;
                 addPoint(loginId, amount, "GET");
                 decreaseInventoryOrDelete(inven);
                 break;
+            case "HEART_TICKET":
+            break;
             case "DECO_NICK":
             case "DECO_BG":
             case "DECO_ICON":
