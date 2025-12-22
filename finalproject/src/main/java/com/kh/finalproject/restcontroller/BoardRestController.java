@@ -65,10 +65,6 @@ public class BoardRestController {
 
 	// 게시글 등록
 	@PostMapping("/")
-
-	
-		
-
 	public void insert(@RequestAttribute TokenVO tokenVO,
 								@RequestBody BoardDto boardDto) {
 		String loginId = tokenVO.getLoginId();
