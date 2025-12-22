@@ -55,7 +55,7 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
                 "/point/store/",       // ★ 상품 목록 조회는 로그인 없이 허용
                 "/ranking/**",
                 "/quiz/log/list/ranking/**",
-                "/board/",           // 게시글 전체 조회
+//                "/board/",           // 게시글 전체 조회
                 "/board/page/**",    // 게시글 페이지 조회
                 "/board/contentsId/**", // 컨텐츠별 게시글 조회
                 "/board/{boardNo}",   // 게시글 상세 조회 (숫자만 오는 경우)
