@@ -121,6 +121,7 @@
       AND INVENTORY_ITEM_NO = #{inventoryItemNo}
 </select>
 
+
 <update id="unequipByType">
     UPDATE inventory 
     SET inventory_equipped = 'N'
