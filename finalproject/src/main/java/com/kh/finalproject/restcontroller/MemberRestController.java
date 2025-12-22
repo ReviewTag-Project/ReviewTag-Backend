@@ -30,6 +30,7 @@ import com.kh.finalproject.vo.MemberAddQuizListVO;
 import com.kh.finalproject.vo.MemberLoginResponseVO;
 import com.kh.finalproject.vo.MemberMypageResponseVO;
 import com.kh.finalproject.vo.MemberPointVO;
+import com.kh.finalproject.vo.MemberProfileResponseVO;
 import com.kh.finalproject.vo.MemberQuizListVO;
 import com.kh.finalproject.vo.MemberQuizRateVO;
 import com.kh.finalproject.vo.MemberRefreshVO;
@@ -86,8 +87,17 @@ public class MemberRestController {
 	}
 	
 	@GetMapping("/profile/{memberId}")
-	public MemberProfileDto selectProfile(@PathVariable String memberId) {
-		return memberDao.selectProfile(memberId);
+	public MemberProfileResponseVO selectProfile(@PathVariable String memberId) {
+		MemberProfileDto memberProfileDto =  memberDao.selectProfile(memberId);
+		if(memberProfileDto == null) throw new TargetNotfoundException();
+		
+		MemberPointVO pointVO = pointService.getMyPointInfo(memberId);
+		
+		
+		return MemberProfileResponseVO.builder()
+                .profile(memberProfileDto)
+                .point(pointVO)
+                .build();
 	}
 	
 	@GetMapping("/mypage/{loginId}")
@@ -96,13 +106,21 @@ public class MemberRestController {
         MemberDto memberDto = memberDao.selectOne(loginId);
         if(memberDto == null) throw new TargetNotfoundException();
 
-        // 2. 치장 및 포인트 정보 조회 (작성하신 Service 활용)
+        // 2. 포인트 정보 조회
         MemberPointVO pointVO = pointService.getMyPointInfo(loginId);
 
-        // 3. 합쳐서 반환
+        // 3. 각 항목별 카운트 조회
+        int reviewCount = memberReviewDao.countReview(loginId);
+        int wishCount = memberWatchDao.countWatchlist(loginId);
+        int quizCount = memberQuizDao.countAnswerQuiz(loginId);
+
+        // 4. 합쳐서 반환
         return MemberMypageResponseVO.builder()
                 .member(memberDto)
                 .point(pointVO)
+                .reviewCount(reviewCount)
+                .wishCount(wishCount)
+                .quizCount(quizCount)
                 .build();
     }
 	
@@ -111,20 +129,28 @@ public class MemberRestController {
 	//회원정보수정 (전체수정)
 	@PutMapping("/{memberId}")
 	public void edit(
-			@PathVariable String memberId,
-			@RequestBody MemberDto memberDto) {
-		MemberDto originDto = memberDao.selectOne(memberId);
-		if(originDto == null) throw new TargetNotfoundException();
-		// 각 요소 입력
-		originDto.setMemberPw(memberDto.getMemberPw());
-		originDto.setMemberEmail(memberDto.getMemberEmail());
-		originDto.setMemberBirth(memberDto.getMemberBirth());
-		originDto.setMemberContact(memberDto.getMemberContact());
-		originDto.setMemberLevel(memberDto.getMemberLevel());
-		originDto.setMemberPost(memberDto.getMemberPost());
-		originDto.setMemberAddress1(memberDto.getMemberAddress1());
-		originDto.setMemberAddress2(memberDto.getMemberAddress2());
-		memberDao.update(originDto);
+	        @PathVariable String memberId,
+	        @RequestBody MemberDto memberDto) {
+
+	    MemberDto originDto = memberDao.selectOne(memberId);
+	    if(originDto == null) throw new TargetNotfoundException();
+
+	   
+	    if(memberDto.getMemberBirth() != null)
+	        originDto.setMemberBirth(memberDto.getMemberBirth());
+
+	    if(memberDto.getMemberContact() != null)
+	        originDto.setMemberContact(memberDto.getMemberContact());
+
+	    if(memberDto.getMemberPost() != null)
+	        originDto.setMemberPost(memberDto.getMemberPost());
+
+	    if(memberDto.getMemberAddress1() != null)
+	        originDto.setMemberAddress1(memberDto.getMemberAddress1());
+
+	    if(memberDto.getMemberAddress2() != null)
+	        originDto.setMemberAddress2(memberDto.getMemberAddress2());
+	    memberDao.update(originDto);
 	}
 	
 	@PutMapping("/password/{loginId}")
