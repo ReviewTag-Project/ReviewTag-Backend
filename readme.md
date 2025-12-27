@@ -1,4 +1,4 @@
-# ReviewTag Backend (상세 버전)
+# ReviewTag Backend
 
 ## 📖 프로젝트 소개
 
