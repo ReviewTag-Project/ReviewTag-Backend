@@ -22,7 +22,7 @@ public class AttachmentService {
 	
 	//파일 저장을 위한 경로 설정
 	private File home = new File(System.getProperty("user.home"));
-	private File upload = new File(home, "upload");
+	private File upload = new File(home, "upload-review");
 	
 	//파일 저장 (실물 + DB)
 	@Transactional
