@@ -7,7 +7,6 @@ COPY . .
 RUN yum install -y tar gzip
 
 # 실행 권한 부여 및 빌드 (Maven 사용)
-# ★ 중요: 폴더 안에 'mvnw' 파일이 꼭 있어야 합니다!
 RUN chmod +x ./mvnw
 RUN ./mvnw clean package -DskipTests
 
